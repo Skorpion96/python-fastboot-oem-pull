@@ -104,7 +104,7 @@ class FastbootProtocol(object):
           OKAY packet's message.
         """
         while True:
-            response = self.usb.BulkRead(64, timeout_ms=timeout_ms)
+            response = self.usb.BulkRead(256, timeout_ms=timeout_ms)
             header = bytes(response[:4])
             remaining = bytes(response[4:])
 
@@ -113,10 +113,15 @@ class FastbootProtocol(object):
             elif header == b'FAIL':
                 info_cb(FastbootMessage(remaining, header))
                 raise FastbootRemoteFailure('FAIL: %s', remaining)
-            if header == b'OKAY':
+            elif header == b'OKAY':
                 info_cb(FastbootMessage(remaining, header))
+                return header
             else:
-                octets=int(remaining, 16)
+                try:
+                    octets = int(remaining, 16)
+                except ValueError:
+                    raise FastbootInvalidResponse(
+                    'Got unknown header %s and response %s', header, remaining)
                 print(f"Data response, {octets} octets")
                 with open(outfile, "wb") as fileout:
                     r=blocksize
@@ -128,7 +133,6 @@ class FastbootProtocol(object):
                         readdata=self.usb.BulkRead(r, timeout_ms=timeout_ms)
                         fileout.write(readdata)
                         octets-=r
-            return header
 
     def _HandleProgress(self, total, progress_callback):
         """Calls the callback with the current progress and total ."""
