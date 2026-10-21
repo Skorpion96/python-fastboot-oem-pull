@@ -15,3 +15,4 @@ Usage:
 2. **python main.py oem pull \*partition_name\*** – would return the contents of *partition_name* (g. oem pull uboot_log)
 3. **python main.py oem pull \*address\*++\*size\*** – would return the contents of the memory *address*, returning *size* bytes. (g. oem pull 0x80000000++0x1000)
 4. **python main.py reboot**
+5. **./dump.sh partitions.txt** - would dump partitions from a given file list, each row should contain one partition
